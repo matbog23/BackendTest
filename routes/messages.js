@@ -17,7 +17,7 @@ router.post('/', async (req, res) => {
 // Read all messages
 router.get('/', async (req, res) => {
   try {
-    const messages = await Message.find();
+    const messages = await Message.find().populate('sender', 'username email').populate('recipients', 'username email');
     res.status(200).send(messages);
   } catch (error) {
     res.status(500).send(error);
