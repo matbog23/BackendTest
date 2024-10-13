@@ -1,5 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import routeIndex from './routes/index.js';
 import routeTest from './routes/test.js';
@@ -11,6 +12,9 @@ import routeUsers from './routes/users.js';
 dotenv.config();
 
 const app = express();
+
+// Use the CORS middleware
+app.use(cors());
 
 app.use(express.json()); // Middleware to parse JSON bodies
 
