@@ -10,6 +10,7 @@ import routeIndex from './routes/index.js';
 import routeTest from './routes/test.js';
 import routeMessages from './routes/messages.js';
 import routeUsers from './routes/users.js';
+import restaurantRouter from './routes/restaurant.js';
 
 
 // Load environment variables from .env file
@@ -83,6 +84,8 @@ app.use('/', routeIndex);
 app.use('/test', routeTest);
 app.use('/messages', routeMessages);
 app.use('/users', routeUsers);
+app.use('/restaurants', restaurantRouter);
+
 
 // Google Authentication Routes
 app.get('/auth/google', (req, res, next) => {
