@@ -11,6 +11,7 @@ import routeTest from './routes/test.js';
 import routeMessages from './routes/messages.js';
 import routeUsers from './routes/users.js';
 import restaurantRouter from './routes/restaurant.js';
+import reviewRouter from './routes/review.js';
 
 
 // Load environment variables from .env file
@@ -85,6 +86,7 @@ app.use('/test', routeTest);
 app.use('/messages', routeMessages);
 app.use('/users', routeUsers);
 app.use('/restaurants', restaurantRouter);
+app.use('/reviews', reviewRouter);
 
 
 // Google Authentication Routes
