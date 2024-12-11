@@ -10,7 +10,8 @@ const restaurantSchema = new mongoose.Schema({
             lng: { type: Number, required: true }
         }
     },
-    cuisine: { type: String, required: true },  // bijv. 'Italian', 'Mexican', enz.
+    cuisine: { type: String, required: true },  // e.g., 'Italian', 'Mexican', etc.
+    tags: { type: [String], default: [] }, // New field to store tags
     createdAt: { type: Date, default: Date.now },
 });
 
