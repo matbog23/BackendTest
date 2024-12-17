@@ -42,21 +42,25 @@ router.get('/:restaurantId', async (req, res) => {
   try {
     const { restaurantId } = req.params;
 
-    // Fetch all reviews for the specified restaurant, sorted by creation date
+    // Fetch reviews and populate user (optional) for more details
     const reviews = await Review.find({ restaurant: restaurantId })
-      .populate('user', 'username') // Include username from the user
-      .sort({ createdAt: -1 }); // Sort by newest first
+      .populate('user', 'username')  // Populate user if you want the user's info (e.g., username)
+      .exec();
 
-    if (!reviews.length) {
-      return res.status(404).json({ message: "No reviews found for this restaurant" });
-    }
+    // Convert ObjectIds to strings before sending
+    const reviewsWithStringIds = reviews.map(review => ({
+      ...review.toObject(),
+      _id: review._id.toString(),
+      restaurant: review.restaurant.toString(),
+      user: review.user.toString(),
+    }));
 
-    res.status(200).json(reviews);
+    res.status(200).json(reviewsWithStringIds);
   } catch (error) {
-    console.error("Error fetching reviews:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Failed to fetch reviews' });
   }
 });
+
 
 
 router.get('/:restaurantId/:reviewId', async (req, res) => {
