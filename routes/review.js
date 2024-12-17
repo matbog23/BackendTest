@@ -38,28 +38,28 @@ router.post('/:restaurantId', async (req, res) => {
 });
 
 
-router.get('/:restaurantId', async (req, res) => {
+// Get all reviews for a specific restaurant
+router.get('/restaurant/:restaurantId', async (req, res) => {
   try {
     const { restaurantId } = req.params;
 
-    // Fetch reviews and populate user (optional) for more details
+    // Validate the restaurantId to ensure it's a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      return res.status(400).json({ error: 'Invalid restaurant ID' });
+    }
+
+    // Fetch reviews linked to the restaurant
     const reviews = await Review.find({ restaurant: restaurantId })
-      .populate('user', 'username')  // Populate user if you want the user's info (e.g., username)
+      .populate('user', 'username') // Optionally populate user info
       .exec();
 
-    // Convert ObjectIds to strings before sending
-    const reviewsWithStringIds = reviews.map(review => ({
-      ...review.toObject(),
-      _id: review._id.toString(),
-      restaurant: review.restaurant.toString(),
-      user: review.user.toString(),
-    }));
-
-    res.status(200).json(reviewsWithStringIds);
+      
+    res.status(200).json(reviews); // Return the reviews
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch reviews' });
   }
 });
+
 
 
 
