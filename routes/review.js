@@ -39,7 +39,7 @@ router.post('/:restaurantId', async (req, res) => {
 
 
 // Get all reviews for a specific restaurant
-router.get('/restaurant/:restaurantId', async (req, res) => {
+router.get('/:restaurantId', async (req, res) => {
   try {
     const { restaurantId } = req.params;
 
