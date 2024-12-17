@@ -4,7 +4,6 @@ import Restaurant from '../models/Restaurant.js';
 
 const router = express.Router();
 
-// Create a new review for a restaurant
 router.post('/:restaurantId', async (req, res) => {
   try {
     const { restaurantId } = req.params;
@@ -13,7 +12,13 @@ router.post('/:restaurantId', async (req, res) => {
     // Check if the restaurant exists
     const restaurant = await Restaurant.findById(restaurantId);
     if (!restaurant) {
-      return res.status(404).send({ message: "Restaurant not found" });
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+
+    // Check if the user has already reviewed this restaurant
+    const existingReview = await Review.findOne({ restaurant: restaurantId, user });
+    if (existingReview) {
+      return res.status(400).json({ message: "You have already reviewed this restaurant" });
     }
 
     // Create and save the review
@@ -21,78 +26,97 @@ router.post('/:restaurantId', async (req, res) => {
       restaurant: restaurantId,
       user,
       rating,
-      comment
+      comment,
     });
     await review.save();
-    
-    res.status(201).send(review);
+
+    res.status(201).json(review);
   } catch (error) {
-    res.status(400).send(error);
+    console.error("Error creating review:", error);
+    res.status(400).json({ error: error.message });
   }
 });
 
-// Get all reviews for a specific restaurant
+
 router.get('/:restaurantId', async (req, res) => {
   try {
     const { restaurantId } = req.params;
 
-    // Fetch all reviews for the specified restaurant
-    const reviews = await Review.find({ restaurant: restaurantId }).populate('user', 'username');
-    res.status(200).send(reviews);
+    // Fetch all reviews for the specified restaurant, sorted by creation date
+    const reviews = await Review.find({ restaurant: restaurantId })
+      .populate('user', 'username') // Include username from the user
+      .sort({ createdAt: -1 }); // Sort by newest first
+
+    if (!reviews.length) {
+      return res.status(404).json({ message: "No reviews found for this restaurant" });
+    }
+
+    res.status(200).json(reviews);
   } catch (error) {
-    res.status(500).send(error);
+    console.error("Error fetching reviews:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 
-// Get a single review by ID
+
 router.get('/:restaurantId/:reviewId', async (req, res) => {
   try {
-    const { reviewId } = req.params;
+    const { restaurantId, reviewId } = req.params;
 
-    // Find the review by ID
-    const review = await Review.findById(reviewId).populate('user', 'username');
+    // Find the review and ensure it belongs to the specified restaurant
+    const review = await Review.findOne({ _id: reviewId, restaurant: restaurantId }).populate('user', 'username');
     if (!review) {
-      return res.status(404).send({ message: "Review not found" });
+      return res.status(404).json({ message: "Review not found for this restaurant" });
     }
 
-    res.status(200).send(review);
+    res.status(200).json(review);
   } catch (error) {
-    res.status(500).send(error);
+    console.error("Error fetching review:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 
-// Update a review by ID
+
 router.patch('/:restaurantId/:reviewId', async (req, res) => {
   try {
-    const { reviewId } = req.params;
+    const { restaurantId, reviewId } = req.params;
+    const { user, ...updateFields } = req.body;
+
+    // Ensure the review exists and belongs to the user
+    const review = await Review.findOne({ _id: reviewId, restaurant: restaurantId, user });
+    if (!review) {
+      return res.status(404).json({ message: "Review not found or unauthorized" });
+    }
 
     // Update the review
-    const review = await Review.findByIdAndUpdate(reviewId, req.body, { new: true, runValidators: true });
-    if (!review) {
-      return res.status(404).send({ message: "Review not found" });
-    }
+    Object.assign(review, updateFields);
+    await review.save();
 
-    res.status(200).send(review);
+    res.status(200).json(review);
   } catch (error) {
-    res.status(400).send(error);
+    console.error("Error updating review:", error);
+    res.status(400).json({ error: error.message });
   }
 });
 
-// Delete a review by ID
+
 router.delete('/:restaurantId/:reviewId', async (req, res) => {
   try {
-    const { reviewId } = req.params;
+    const { restaurantId, reviewId } = req.params;
+    const { user } = req.body; // Assuming user info is passed in the request
 
-    // Find and delete the review
-    const review = await Review.findByIdAndDelete(reviewId);
+    // Ensure the review exists and belongs to the user
+    const review = await Review.findOneAndDelete({ _id: reviewId, restaurant: restaurantId, user });
     if (!review) {
-      return res.status(404).send({ message: "Review not found" });
+      return res.status(404).json({ message: "Review not found or unauthorized" });
     }
 
-    res.status(200).send({ message: "Review deleted successfully" });
+    res.status(200).json({ message: "Review deleted successfully" });
   } catch (error) {
-    res.status(500).send(error);
+    console.error("Error deleting review:", error);
+    res.status(500).json({ error: error.message });
   }
 });
+
 
 export default router;
