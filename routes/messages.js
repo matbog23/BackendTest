@@ -37,6 +37,18 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Get messages by restaurant ID
+router.get('/restaurant/:restaurantId', async (req, res) => {
+  try {
+    const messages = await Message.find({ restaurant: req.params.restaurantId })
+      .populate('sender', 'username')
+      .sort({ createdAt: -1 }); // Sort by newest
+    res.status(200).send(messages);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
 // Update a message by ID
 router.patch('/:id', async (req, res) => {
   try {
