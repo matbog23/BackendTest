@@ -44,7 +44,10 @@ router.get('/:restaurantId', async (req, res) => {
     const { restaurantId } = req.params;
 
     // Validate the restaurantId to ensure it's a valid ObjectId
+    console.log("Checking restaurantId:", restaurantId); // Log the restaurantId
+
     if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      console.error("Invalid restaurant ID:", restaurantId); // Log invalid IDs
       return res.status(400).json({ error: 'Invalid restaurant ID' });
     }
 
@@ -53,12 +56,14 @@ router.get('/:restaurantId', async (req, res) => {
       .populate('user', 'username') // Optionally populate user info
       .exec();
 
-      
+    console.log("Found reviews:", reviews); // Log the found reviews
     res.status(200).json(reviews); // Return the reviews
   } catch (error) {
+    console.error("Error fetching reviews:", error); // Log the error in more detail
     res.status(500).json({ error: 'Failed to fetch reviews' });
   }
 });
+
 
 
 
