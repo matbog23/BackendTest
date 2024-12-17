@@ -6,13 +6,22 @@ const router = express.Router();
 // Create a new message
 router.post('/', async (req, res) => {
   try {
-    const message = new Message(req.body);
+    const { text, sender, restaurant } = req.body;
+
+    if (!restaurant) {
+      return res.status(400).send({ error: 'Restaurant ID is required' });
+    }
+
+    const message = new Message({ text, sender, restaurant });
     await message.save();
+
     res.status(201).send(message);
   } catch (error) {
+    console.error('Error creating message:', error);
     res.status(400).send(error);
   }
 });
+
 
 // Read all messages
 router.get('/', async (req, res) => {
