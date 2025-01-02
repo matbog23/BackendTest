@@ -16,13 +16,20 @@ router.post('/', async (req, res) => {
 
 // Read all restaurants
 router.get('/', async (req, res) => {
+  const { name } = req.query;
   try {
-    const restaurants = await Restaurant.find();
-    res.status(200).send(restaurants);
+    if (name) {
+      const regex = new RegExp(name, 'i'); // Case-insensitive match
+      const restaurants = await Restaurant.find({ name: regex });
+      return res.status(200).json(restaurants);
+    }
+    const restaurants = await Restaurant.find(); // Return all restaurants if no query
+    res.status(200).json(restaurants);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json({ error: error.message });
   }
 });
+
 
 // Read a single restaurant by ID
 router.get('/:id', async (req, res) => {
