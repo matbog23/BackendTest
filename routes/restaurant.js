@@ -18,17 +18,42 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
   const { name } = req.query;
   try {
-    if (name) {
-      const regex = new RegExp(name, 'i'); // Case-insensitive match
-      const restaurants = await Restaurant.find({ name: regex });
-      return res.status(200).json(restaurants);
-    }
-    const restaurants = await Restaurant.find(); // Return all restaurants if no query
+    const matchStage = name ? { name: new RegExp(name, 'i') } : {};
+
+    const restaurants = await Restaurant.aggregate([
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: 'reviews', // Collection to join
+          localField: '_id', // Field in the restaurants collection
+          foreignField: 'restaurant', // Field in the reviews collection
+          as: 'reviews', // Output array
+        },
+      },
+      {
+        $addFields: {
+          averageRating: {
+            $cond: {
+              if: { $gt: [{ $size: '$reviews' }, 0] },
+              then: { $round: [{ $avg: '$reviews.rating' }, 1] },
+              else: null,
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          reviews: 0, // Exclude reviews if not needed in the response
+        },
+      },
+    ]);
+
     res.status(200).json(restaurants);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 // Read a single restaurant by ID
